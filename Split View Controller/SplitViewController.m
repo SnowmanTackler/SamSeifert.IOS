@@ -38,7 +38,10 @@
 }
 
 - (CGFloat) getSidebarWidth { return 0; }
-- (void) shouldNotSidebarInAndOut { }
+- (void) splitViewNoSidebar { } //
+- (void) splitViewControllerShouldDisplayOnMain {} // A view controller implementing this method will be on main page of iPAD
+- (void) splitViewControllerRemoving {}
+
 - (void) viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
@@ -52,7 +55,7 @@
         
         id uivc = [self.viewControllers firstObject];
         if ([uivc respondsToSelector:@selector(getSidebarWidth)]) dif = [uivc getSidebarWidth];
-        if ([uivc respondsToSelector:@selector(shouldNotSidebarInAndOut)])
+        if ([uivc respondsToSelector:@selector(splitViewNoSidebar)])
         {
             self._NSLayoutConstraintEmbedWidth.constant = w - dif;
             self._NSLayoutConstraintTranslateWidth.constant = w;
@@ -68,7 +71,6 @@
     }
 }
 
-- (void) splitViewControllerShouldDisplayOnMain {}
 - (void) setupViewController:(UIViewController *) vc animated:(BOOL) b
 {
     if (
@@ -86,10 +88,15 @@
     }
     else
     {
+        
+        for (id uivc in self._ChildViewController.viewControllers)
+            if ([uivc respondsToSelector:@selector(splitViewControllerRemoving)])
+                    [uivc splitViewControllerRemoving];
+
         if (self._BoolShowBar) [self pullOutSide:nil];
         [self._ChildViewController setViewControllers:@[vc] animated:NO];
 
-        if ([vc respondsToSelector:@selector(shouldNotSidebarInAndOut)])
+        if ([vc respondsToSelector:@selector(splitViewNoSidebar)])
         {
             vc.navigationItem.leftBarButtonItem = nil;            
         }
@@ -139,6 +146,7 @@
 
     if (isSideways)
     {
+        /*
         animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
         animation.fromValue = @(0);
         animation.toValue = @(self.view.frame.size.width / 10);
@@ -147,6 +155,7 @@
         [self._ChildViewController.view.layer addAnimation:animation forKey:@"mk"];
         self._ChildViewController.view.layer.transform = t;
         return;
+         */
     }
     else
     {

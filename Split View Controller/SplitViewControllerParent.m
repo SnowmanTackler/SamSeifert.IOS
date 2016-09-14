@@ -70,13 +70,15 @@
                                                                         constant:h];
             [self._UITranslateView addConstraint:nslctw];
             
-            [self._UITranslateView addConstraint:[NSLayoutConstraint constraintWithItem:self._UITranslateView
+            CGFloat border = (1 / [UIScreen mainScreen].scale);
+            
+            [self._UITranslateView addConstraint:[NSLayoutConstraint constraintWithItem:uinc.view
                                                                               attribute:NSLayoutAttributeLeading
                                                                               relatedBy:NSLayoutRelationEqual
                                                                                  toItem:self._UIContainerView
-                                                                              attribute:NSLayoutAttributeLeading
+                                                                              attribute:NSLayoutAttributeTrailing
                                                                              multiplier:1
-                                                                               constant:0]];
+                                                                               constant:border]];
             
             NSLayoutConstraint * nslcsw = [NSLayoutConstraint constraintWithItem:self._UIContainerView
                                                                      attribute:NSLayoutAttributeWidth
@@ -84,7 +86,7 @@
                                                                         toItem:nil
                                                                      attribute:NSLayoutAttributeNotAnAttribute
                                                                     multiplier:1
-                                                                      constant:dif - (1 / [UIScreen mainScreen].scale)];
+                                                                      constant:dif - border];
             [self._UIContainerView addConstraint:nslcsw];
             SplitViewController * child = segue.destinationViewController;
             UIPanGestureRecognizer * uipgr = [[UIPanGestureRecognizer alloc] initWithTarget:child
