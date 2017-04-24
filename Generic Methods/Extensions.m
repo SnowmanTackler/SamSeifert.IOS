@@ -99,7 +99,7 @@
         {
             [popup presentPopoverFromRect:CGRectMake(self.view.frame.size.width/2, self.view.frame.size.height/4, 0, 0)
                                    inView:self.view
-                 permittedArrowDirections:nil
+                 permittedArrowDirections:UIPopoverArrowDirectionAny
                                  animated:YES];
         }
     }
