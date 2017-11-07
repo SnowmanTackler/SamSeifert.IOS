@@ -21,6 +21,13 @@
 
 @end
 
+@interface UITextView (missingFunctions)
+
+@property (nonatomic, copy) NSString * fontName;
+- (void) centerVerticallyWithMinInsets:(UIEdgeInsets)minInsets shouldScroll:(BOOL)force_scroll_to_zero;
+
+@end
+
 @interface NSDate (missingFunctions)
 
 + (NSDate *) dateWithYear:(NSInteger)year month:(NSInteger)month day:(NSInteger)day;
@@ -40,3 +47,4 @@
 - (void) tapWith:(UITapGestureRecognizer *) recognizer;
 
 @end
+

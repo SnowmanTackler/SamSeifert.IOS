@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+#define sign(x)  ((((long)(x)) == 0) ? 0 : (1 - 2 * signbit(((long)(x)))))
+
 #define translateX(f) CATransform3DMakeTranslation(f,0,0)
 #define translateY(f) CATransform3DMakeTranslation(0,f,0)
 #define translateCGX(f) CGAffineTransformMakeTranslation(f,0)

@@ -93,6 +93,7 @@
                                                                                      action:@selector(handlePan:)];
 
             [uinc.navigationBar addGestureRecognizer:uipgr];
+            
             child._ChildViewController = uinc;
             child._ParentView = self._UITranslateView;
             child._NSLayoutConstraintSidebarWidth = nslcsw;
