@@ -18,16 +18,16 @@
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint * _NSLayoutConstraintLeading;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint * _NSLayoutConstraintLeadingTranslate;
 
-@property (weak, nonatomic) UINavigationController * _LeftNavController;
+@property (weak, nonatomic) SplitViewController * _SplitViewController; // Displays on Left If Ipad
 
 @end
 
 @implementation SplitViewControllerParent
 
-- (UINavigationController *) getLeftmostNavController
+- (SplitViewController *) getSplitViewController
 {
     [self view]; // Initiate View
-    return self._LeftNavController;
+    return self._SplitViewController;
 }
 
 - (void) prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
@@ -88,10 +88,11 @@
                                                                     multiplier:1
                                                                       constant:dif - border];
             [self._UIContainerView addConstraint:nslcsw];
+            
             SplitViewController * child = segue.destinationViewController;
+
             UIPanGestureRecognizer * uipgr = [[UIPanGestureRecognizer alloc] initWithTarget:child
                                                                                      action:@selector(handlePan:)];
-
             [uinc.navigationBar addGestureRecognizer:uipgr];
             
             child._ChildViewController = uinc;
@@ -99,14 +100,24 @@
             child._NSLayoutConstraintSidebarWidth = nslcsw;
             child._NSLayoutConstraintTranslateWidth = nslctw;
             child._NSLayoutConstraintEmbedWidth = nslcew;
+            
+            [self performSelector:@selector(newVC:) withObject:uinc afterDelay:0];
         }
         else
         {
             self._UITranslateView.backgroundColor = [UIColor whiteColor];
         }
         
-        self._LeftNavController = segue.destinationViewController;
-    }    
+        self._SplitViewController = segue.destinationViewController;
+    }
+}
+
+// Either double hide both navigation bars, or don't hide either.
+- (void) newVC:(UINavigationController *) vc
+{
+    vc.navigationBar.hidden = self._SplitViewController.navigationBar.hidden;
 }
 
 @end
+
+

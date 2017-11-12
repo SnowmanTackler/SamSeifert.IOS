@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+@class SplitViewController;
+
 @interface SplitViewControllerParent : UIViewController
 
 #define ScreenWidth ([UIScreen mainScreen].bounds.size.width)
@@ -15,6 +17,8 @@
 #define isIpadOrBigger ([UIScreen mainScreen].bounds.size.width >= 768)
 #define isSideways UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)
 
-- (UINavigationController *) getLeftmostNavController;
+- (SplitViewController *) getSplitViewController;
 
 @end
+
+

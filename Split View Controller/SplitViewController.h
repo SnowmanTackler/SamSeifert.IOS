@@ -6,13 +6,11 @@
 //  Copyright (c) 2015 Sam Seifert. All rights reserved.
 //
 
+/*
+ * This class will only be allocated on isIpadOrBigger
+ */
+
 #import <UIKit/UIKit.h>
-
-@protocol SplitViewControllerRoot <NSObject>
-
-@required - (void) setupInitial;
-
-@end
 
 @interface SplitViewController : UINavigationController
 
@@ -25,4 +23,13 @@
 - (void) setupViewController:(UIViewController *) vc animated:(BOOL) b;
 - (IBAction)handlePan:(UIPanGestureRecognizer *) recognizer;
 
+- (void) setBackButton:(UIBarButtonItem *) b;
+
 @end
+
+@interface UIViewController (SplitViewControllerHelpers)
+
+- (SplitViewController *) splitViewController;
+
+@end
+

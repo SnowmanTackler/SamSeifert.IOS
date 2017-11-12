@@ -15,6 +15,8 @@
 @property BOOL _BoolShowBar;
 @property BOOL _BoolAnimateInOut;
 
+@property (weak, nonatomic) UIBarButtonItem * _BackButton;
+
 @end
 
 
@@ -37,25 +39,34 @@
     self._BoolShowBar = NO;
 }
 
-- (CGFloat) getSidebarWidth { return 0; }
-- (void) splitViewNoSidebar { } //
-- (void) splitViewControllerShouldDisplayOnMain {} // A view controller implementing this method will be on main page of iPAD
-- (void) splitViewControllerRemoving {}
+- (bool) isSetupAsIpad
+{
+    //  This is only set by parent when isIpadOrBigger
+    return self._ChildViewController != nil;
+}
+
+- (CGFloat) splitViewController_IWantSidebarWithWidth { return 0; } // Unsure why this is here, not in Read by Sound
+- (void) splitViewController_IDontWantSidebar { }
+- (void) splitViewController_IShouldDisplayOnMain {} // A VC implementing this method will be on main page of iPAD
+- (void) splitViewController_IAmBeingRemoved {}
+- (UIBarButtonItem *) splitViewController_IHaveCustomBackButton { return nil; } // If this returns nil, you must use the splitViewController method in the childs view did load to set the parrent setBackButton
+
 
 - (void) viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    id fvc = self.viewControllers.firstObject;
-    if ([fvc respondsToSelector:@selector(setupInitial)]) [fvc setupInitial];
-    else if (isIpadOrBigger)
+    
+    if ([self isSetupAsIpad])
     {
         CGFloat w = [UIScreen mainScreen].bounds.size.width;
         CGFloat h = [UIScreen mainScreen].bounds.size.height;
         CGFloat dif = ABS(w - h);
         
         id uivc = [self.viewControllers firstObject];
-        if ([uivc respondsToSelector:@selector(getSidebarWidth)]) dif = [uivc getSidebarWidth];
-        if ([uivc respondsToSelector:@selector(splitViewNoSidebar)])
+        if ([uivc respondsToSelector:@selector(splitViewController_IWantSidebarWithWidth)])
+            dif = [uivc splitViewController_IWantSidebarWithWidth];
+        
+        if ([uivc respondsToSelector:@selector(splitViewController_IDontWantSidebar)])
         {
             self._NSLayoutConstraintEmbedWidth.constant = w - dif;
             self._NSLayoutConstraintTranslateWidth.constant = w;
@@ -65,22 +76,35 @@
         {
             self._NSLayoutConstraintTranslateWidth.constant = dif + w;
             self._NSLayoutConstraintSidebarWidth.constant = dif - (1 / [UIScreen mainScreen].scale);
-            self._ParentView.layer.transform = translateX(dif);
-            self._BoolShowBar = YES;
+            
+            // Pull out sidebar
+            if (!isSideways)
+            {
+                self._ParentView.layer.transform = translateX(dif);
+                self._BoolShowBar = YES;
+            }
         }
     }
 }
 
++ (void) tellAllChildrenTheyAreBeingRemovedRecursively:(UIViewController *) uivc
+{
+    for (id child in uivc.childViewControllers)
+        [SplitViewController tellAllChildrenTheyAreBeingRemovedRecursively:child];
+    
+    if ([uivc respondsToSelector:@selector(splitViewController_IAmBeingRemoved)])
+        [((id)uivc) splitViewController_IAmBeingRemoved];
+}
+
 - (void) setupViewController:(UIViewController *) vc animated:(BOOL) b
 {
-    if (
-        (self._ChildViewController == nil) ||
+    if ((![self isSetupAsIpad]) || // on a phone
         (
          (
           [vc isKindOfClass:[UITableViewController class]] ||
           [vc isKindOfClass:[UICollectionView class]]
          ) && (
-          ![vc respondsToSelector:@selector(splitViewControllerShouldDisplayOnMain)])
+          ![vc respondsToSelector:@selector(splitViewController_IShouldDisplayOnMain)])
          )
         )
     {
@@ -88,25 +112,43 @@
     }
     else
     {
-        
-        for (id uivc in self._ChildViewController.viewControllers)
-            if ([uivc respondsToSelector:@selector(splitViewControllerRemoving)])
-                    [uivc splitViewControllerRemoving];
+        [SplitViewController tellAllChildrenTheyAreBeingRemovedRecursively:self._ChildViewController];
 
         if (self._BoolShowBar) [self pullOutSide:nil];
         [self._ChildViewController setViewControllers:@[vc] animated:NO];
 
-        if ([vc respondsToSelector:@selector(splitViewNoSidebar)])
+        [self setBackButton:nil];
+        
+        if ([vc respondsToSelector:@selector(splitViewController_IDontWantSidebar)])
         {
-            vc.navigationItem.leftBarButtonItem = nil;            
+            vc.navigationItem.leftBarButtonItem = nil;
+        }
+        else if ([vc respondsToSelector:@selector(splitViewController_IHaveCustomBackButton)])
+        {
+            UIBarButtonItem * uibbi = [((id)vc) splitViewController_IHaveCustomBackButton];
+            [self setBackButton:uibbi];
+            // Doing it this way makes sure all children are layed out before calling didFinishAutoLayout,
+            // This way if the view isn't set until viewDidLoad we can grab it.
         }
         else
         {
-            [vc.navigationItem.leftBarButtonItem setTarget:self];
-            [vc.navigationItem.leftBarButtonItem setAction:@selector(pullOutSide:)];
-            [self._ChildViewController.viewControllers.firstObject navigationItem].leftBarButtonItem.enabled = !isSideways;
+            [self setBackButton:vc.navigationItem.leftBarButtonItem];
         }
     }
+}
+
+- (void) setBackButton:(UIBarButtonItem *) b // nullable
+{
+    if (![self isSetupAsIpad]) return; // Don't care for iphone
+
+    [self._BackButton setAction:nil];
+    [self._BackButton setTarget:nil];
+ 
+     self._BackButton = b;
+    
+    [self._BackButton setTarget:self];
+    [self._BackButton setAction:@selector(pullOutSide:)];
+    [self._BackButton setEnabled:!isSideways];
 }
 
 - (IBAction)handlePan:(UIPanGestureRecognizer *) recognizer
@@ -188,9 +230,12 @@
         withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>) coordinator
 {
     [super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
+
+    if (![self isSetupAsIpad]) return; // Don't care for iphone
     
     if (size.width > size.height)
     {
+        [self._BackButton setEnabled:NO];
         [self._ChildViewController.viewControllers.firstObject navigationItem].leftBarButtonItem.enabled = NO;
         if (self._BoolShowBar)
         {
@@ -204,9 +249,35 @@
     }
     else
     {
+        [self._BackButton setEnabled:YES];
         [self._ChildViewController.viewControllers.firstObject navigationItem].leftBarButtonItem.enabled = YES;
+    }    
+}
+
+@end
+
+
+
+@implementation UIViewController (SplitViewControllerHelpers)
+
+- (SplitViewController *) splitViewController
+{
+    UIViewController * uivc = self;
+    
+    while (uivc != nil)
+    {
+        if ([uivc isKindOfClass:[SplitViewController class]])
+        {
+            return (id) uivc;
+        }
+        else if ([uivc isKindOfClass:[SplitViewControllerParent class]])
+        {
+            return [((SplitViewControllerParent*) uivc) getSplitViewController];
+        }
+        else uivc = [uivc parentViewController];
     }
     
+    return nil;
 }
 
 @end
