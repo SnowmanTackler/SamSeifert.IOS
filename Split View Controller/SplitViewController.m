@@ -8,7 +8,8 @@
 
 #import "SplitViewControllerParent.h"
 #import "SplitViewController.h"
-#import "SamsMethods.h"
+#import "Extensions_Sam.h"
+#import "Defines_Sam.h"
 
 @interface SplitViewController ()
 

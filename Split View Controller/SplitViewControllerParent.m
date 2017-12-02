@@ -8,7 +8,7 @@
 
 #import "SplitViewControllerParent.h"
 #import "SplitViewController.h"
-#import "SamsMethods.h"
+#import "Extensions_Sam.h"
 
 @interface SplitViewControllerParent ()
 
@@ -43,7 +43,7 @@
             UINavigationController * uinc = [[UINavigationController alloc] init];
             [self._UITranslateView addSubview:uinc.view];
             [self addChildViewController:uinc];
-            [SamsMethods constrainToMatchParent:uinc.view top:YES bot:YES left:NO right:YES];
+            [uinc.view constrainToMatchParent_top:YES bot:YES left:NO right:YES];
             
             NSLayoutConstraint * nslcew = [NSLayoutConstraint constraintWithItem:uinc.view
                                                                        attribute:NSLayoutAttributeWidth
