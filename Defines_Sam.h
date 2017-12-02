@@ -9,7 +9,9 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-#define sign(x)  (((x) > 0) ? 1 : ((x) < 0) ? -1 : 0)
+// THIS METHOD FAILS FOR UNSIGNED NUMBERS (unsigned - signed)
+#define sign(x) (((x) > 0) - ((x) < 0))
+
 
 #define translateX(f) CATransform3DMakeTranslation(f,0,0)
 #define translateY(f) CATransform3DMakeTranslation(0,f,0)
